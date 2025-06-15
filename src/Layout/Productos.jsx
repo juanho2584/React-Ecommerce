@@ -5,6 +5,7 @@ import Pagination from "../components/Pagination";
 import LoadingHandler from "../components/LoadingHandler";
 import CartSidebar from "../components/SidebarCart";
 import Footer from "../components/Footer";
+ // Estilos para la barra de búsqueda
 
 const Productos = () => {
   const [productos, setProductos] = useState([]);
@@ -14,6 +15,7 @@ const Productos = () => {
   const [error, setError] = useState(null);
   const [cartItems, setCartItems] = useState([]);
   const [showCart, setShowCart] = useState(false);
+  const [busqueda, setBusqueda] = useState("");
 
   const toggleCart = () => setShowCart(!showCart);
 
@@ -73,24 +75,57 @@ const Productos = () => {
       });
   }, []);
 
-  const totalProductos = productos.length;
+  // Filtrado por búsqueda
+  const productosFiltrados = busqueda
+    ? productos.filter((p) =>
+        `${p.title} ${p.description}`.toLowerCase().includes(busqueda.toLowerCase())
+      )
+    : productos;
+
+  // Lógica de paginación
   const indexInicio = (paginaActual - 1) * productosPorPagina;
   const indexFin = indexInicio + productosPorPagina;
-  const productosPagina = productos.slice(indexInicio, indexFin);
+  const productosFiltradosPaginados = productosFiltrados.slice(indexInicio, indexFin);
+  const productosAMostrar = productosFiltradosPaginados;
 
   return (
     <>
       <NavBar />
+
+      {/* Barra de búsqueda con estilo atractivo */}
+      <div className="container my-4">
+        <div className="mx-auto" style={{ maxWidth: "600px" }}>
+          <div className="input-group search-bar shadow rounded-pill overflow-hidden">
+            <span className="input-group-text bg-white border-0">
+              <i className="bi bi-search text-primary fs-5"></i>
+            </span>
+            <input
+              type="text"
+              className="form-control border-0 px-3 py-2 search-input"
+              placeholder="🔍 Buscar productos por nombre o descripción..."
+              value={busqueda}
+              onChange={(e) => {
+                setBusqueda(e.target.value);
+                setPaginaActual(1);
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Lista de productos + paginación */}
       <LoadingHandler loading={loading} error={error}>
-        <ProductList products={productosPagina} addToCart={addToCart} />
+        <ProductList products={productosAMostrar} addToCart={addToCart} />
+
         <Pagination
           paginaActual={paginaActual}
-          totalProductos={totalProductos}
+          totalProductos={productosFiltrados.length}
           productosPorPagina={productosPorPagina}
           setPaginaActual={setPaginaActual}
         />
       </LoadingHandler>
 
+      {/* Sidebar del carrito */}
       <CartSidebar
         show={showCart}
         onClose={toggleCart}

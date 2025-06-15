@@ -4,7 +4,7 @@ import { Navigate } from "react-router-dom";
 function RutaProtegida({ isAuthenticated, children }) {
   
   if (!isAuthenticated) {
-    return <Navigate to="/Registro" replace />;
+    return <Navigate to="/Login" replace />;
   }
   return children;
 }

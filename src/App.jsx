@@ -10,6 +10,7 @@ import ProductModal from "./components/ProductModal";
 import RutaProtegidas from "./auth/RutaProtegidas";
 import "./EstilosGenerales.css";
 import { CartContext } from "./context/CartContext";
+import Login from "./Layout/Login";
 
 function App() {
   
@@ -29,6 +30,7 @@ function App() {
         />
         <Route path="/Producto/:id" element={<ProductModal />} />
         <Route path="/Registro" element={<Registro />} />
+        <Route path="/Login" element={<Login/>}/>
         <Route
           path="/Admin"
           element={
