@@ -1,90 +1,10 @@
-import React, { useState } from 'react';
-import Swal from 'sweetalert2';
-
+// src/components/RegisterForm.js
+import React, { useContext } from "react";
+import { RegisterContext } from "../context/RegisterContext.jsx";
 
 const RegisterForm = () => {
-  const [formData, setFormData] = useState({
-    nombre: '',
-    apellido: '',
-    email: '',
-    password: '',
-    pais: '',
-    fechaNacimiento: '',
-  });
-
-  const [errors, setErrors] = useState({});
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const clearValidations = () => {
-    setErrors({});
-  };
-
-  const resetForm = () => {
-    setFormData({
-      nombre: '',
-      apellido: '',
-      email: '',
-      password: '',
-      pais: '',
-      fechaNacimiento: '',
-    });
-  };
-
-  const validarFormulario = (e) => {
-    e.preventDefault();
-    clearValidations();
-
-    const newErrors = {};
-    const emailRegex = /^[a-z0-9]+[_a-z0-9.-]*[a-z0-9]+@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$/i;
-    const passwordRegex = /^(?=.*\d.*\d)(?=.*[!@#$%^&*(),.?":{}|<>].*[!@#$%^&*(),.?":{}|<>])(?=.*[A-Z]).{8,}$/;
-
-    if (!formData.nombre.trim()) {
-      newErrors.nombre = 'Debe completar el campo Nombre';
-    }
-
-    if (!formData.apellido.trim()) {
-      newErrors.apellido = 'Debe completar el campo Apellido';
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = 'Debe completar el campo Email';
-    } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = 'Formato de Email incorrecto';
-    }
-
-    if (!formData.password.trim()) {
-      newErrors.password = 'Debe completar el campo contraseña';
-    } else if (!passwordRegex.test(formData.password)) {
-      newErrors.password =
-        'La clave debe contener dos números, dos símbolos y una letra mayúscula';
-    }
-
-    if (!formData.pais) {
-      newErrors.pais = 'Debe seleccionar un país';
-    }
-
-    if (!formData.fechaNacimiento) {
-      newErrors.fechaNacimiento = 'Debe seleccionar una Fecha de Nacimiento';
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    // Mostrar notificación con SweetAlert2
-    Swal.fire({
-      title: 'Registro Exitoso',
-      text: `¡Felicitaciones ${formData.nombre.toUpperCase()} ${formData.apellido.toUpperCase()}! Tu registro ha sido exitoso.`,
-      icon: 'success',
-      confirmButtonText: 'Aceptar',
-    });
-
-    resetForm();
-  };
+  const { formData, errors, handleChange, validarFormulario } =
+    useContext(RegisterContext);
 
   return (
     <div className="container py-5">
@@ -95,65 +15,89 @@ const RegisterForm = () => {
             <form onSubmit={validarFormulario}>
               {/* Nombre */}
               <div className="mb-3">
-                <label htmlFor="nombre" className="form-label">Nombre:</label>
+                <label htmlFor="nombre" className="form-label">
+                  Nombre:
+                </label>
                 <input
                   type="text"
-                  className={`form-control ${errors.nombre ? 'is-invalid' : ''}`}
+                  className={`form-control ${
+                    errors.nombre ? "is-invalid" : ""
+                  }`}
                   id="nombre"
                   name="nombre"
                   value={formData.nombre}
                   onChange={handleChange}
                 />
-                {errors.nombre && <div className="text-danger">{errors.nombre}</div>}
+                {errors.nombre && (
+                  <div className="text-danger">{errors.nombre}</div>
+                )}
               </div>
 
               {/* Apellido */}
               <div className="mb-3">
-                <label htmlFor="apellido" className="form-label">Apellido:</label>
+                <label htmlFor="apellido" className="form-label">
+                  Apellido:
+                </label>
                 <input
                   type="text"
-                  className={`form-control ${errors.apellido ? 'is-invalid' : ''}`}
+                  className={`form-control ${
+                    errors.apellido ? "is-invalid" : ""
+                  }`}
                   id="apellido"
                   name="apellido"
                   value={formData.apellido}
                   onChange={handleChange}
                 />
-                {errors.apellido && <div className="text-danger">{errors.apellido}</div>}
+                {errors.apellido && (
+                  <div className="text-danger">{errors.apellido}</div>
+                )}
               </div>
 
               {/* Email */}
               <div className="mb-3">
-                <label htmlFor="email" className="form-label">Correo Electrónico:</label>
+                <label htmlFor="email" className="form-label">
+                  Correo Electrónico:
+                </label>
                 <input
                   type="email"
-                  className={`form-control ${errors.email ? 'is-invalid' : ''}`}
+                  className={`form-control ${errors.email ? "is-invalid" : ""}`}
                   id="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
                 />
-                {errors.email && <div className="text-danger">{errors.email}</div>}
+                {errors.email && (
+                  <div className="text-danger">{errors.email}</div>
+                )}
               </div>
 
               {/* Contraseña */}
               <div className="mb-3">
-                <label htmlFor="password" className="form-label">Contraseña:</label>
+                <label htmlFor="password" className="form-label">
+                  Contraseña:
+                </label>
                 <input
                   type="password"
-                  className={`form-control ${errors.password ? 'is-invalid' : ''}`}
+                  className={`form-control ${
+                    errors.password ? "is-invalid" : ""
+                  }`}
                   id="password"
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
                 />
-                {errors.password && <div className="text-danger">{errors.password}</div>}
+                {errors.password && (
+                  <div className="text-danger">{errors.password}</div>
+                )}
               </div>
 
               {/* País */}
               <div className="mb-3">
-                <label htmlFor="pais" className="form-label">País:</label>
+                <label htmlFor="pais" className="form-label">
+                  País:
+                </label>
                 <select
-                  className={`form-select ${errors.pais ? 'is-invalid' : ''}`}
+                  className={`form-select ${errors.pais ? "is-invalid" : ""}`}
                   id="pais"
                   name="pais"
                   value={formData.pais}
@@ -164,15 +108,21 @@ const RegisterForm = () => {
                   <option value="Chile">Chile</option>
                   <option value="México">México</option>
                 </select>
-                {errors.pais && <div className="text-danger">{errors.pais}</div>}
+                {errors.pais && (
+                  <div className="text-danger">{errors.pais}</div>
+                )}
               </div>
 
               {/* Fecha de nacimiento */}
               <div className="mb-3">
-                <label htmlFor="fechaNacimiento" className="form-label">Fecha de Nacimiento:</label>
+                <label htmlFor="fechaNacimiento" className="form-label">
+                  Fecha de Nacimiento:
+                </label>
                 <input
                   type="date"
-                  className={`form-control ${errors.fechaNacimiento ? 'is-invalid' : ''}`}
+                  className={`form-control ${
+                    errors.fechaNacimiento ? "is-invalid" : ""
+                  }`}
                   id="fechaNacimiento"
                   name="fechaNacimiento"
                   value={formData.fechaNacimiento}

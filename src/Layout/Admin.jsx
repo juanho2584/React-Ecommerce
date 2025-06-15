@@ -1,92 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext } from "react";
 import { Modal, Button } from "react-bootstrap";
+import { AdminContext } from "../context/AdminContext";
 
 const Admin = () => {
-  const [productos, setProductos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [nuevoProducto, setNuevoProducto] = useState({
-    title: "",
-    price: 0,
-    image: "",
-    stock: 0,
-  });
-
-  const [modal, setModal] = useState({
-    show: false,
-    title: "",
-    message: "",
-    action: null,
-  });
-
-  useEffect(() => {
-    fetch("https://dummyjson.com/products?limit=20")
-      .then((res) => res.json())
-      .then((data) => {
-        const productosAdaptados = data.products.map((prod) => ({
-          ...prod,
-          image: prod.images?.[0] || "",
-          stock: prod.stock ?? 10,
-        }));
-        setProductos(productosAdaptados);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError("Error al cargar productos.");
-        setLoading(false);
-      });
-  }, []);
-
-  const handleInputChange = (e) => {
-    setNuevoProducto({ ...nuevoProducto, [e.target.name]: e.target.value });
-  };
-
-  const agregarProducto = () => {
-    const nuevo = {
-      ...nuevoProducto,
-      id: Date.now(),
-    };
-    setModal({
-      show: true,
-      title: "Agregar Producto",
-      message: `¿Estás seguro de agregar "${nuevo.title}"?`,
-      action: () => {
-        setProductos([...productos, nuevo]);
-        setNuevoProducto({ title: "", price: 0, image: "", stock: 0 });
-        setModal({ ...modal, show: false });
-      },
-    });
-  };
-
-  const eliminarProducto = (id, nombre) => {
-    setModal({
-      show: true,
-      title: "Eliminar Producto",
-      message: `¿Estás seguro de eliminar "${nombre}"?`,
-      action: () => {
-        setProductos(productos.filter((p) => p.id !== id));
-        setModal({ ...modal, show: false });
-      },
-    });
-  };
-
-  const editarProducto = (id, campo, valor) => {
-    setProductos((prev) =>
-      prev.map((prod) => (prod.id === id ? { ...prod, [campo]: valor } : prod))
-    );
-  };
-
-  const guardarCambios = () => {
-    setModal({
-      show: true,
-      title: "Guardar Cambios",
-      message: "¿Deseás guardar todos los cambios realizados?",
-      action: () => {
-        console.log("Cambios guardados:", productos);
-        setModal({ ...modal, show: false });
-      },
-    });
-  };
+  const { productos,loading,error,nuevoProducto,handleInputChange,agregarProducto,eliminarProducto,editarProducto,
+    guardarCambios,modal,setModal,} = useContext(AdminContext);
 
   return (
     <div className="container my-5">
