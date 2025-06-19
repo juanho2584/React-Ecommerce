@@ -1,18 +1,21 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useEffect, useState } from "react";
 
 export const AdminContext = createContext();
 
 export const AdminProvider = ({ children }) => {
   const [productos, setProductos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [nuevoProducto, setNuevoProducto] = useState({
     title: "",
-    price: 0,
+    price: "",
     image: "",
-    stock: 0,
+    stock: "",
   });
 
+  const [loading, setLoading] = useState(true);
+  const [guardando, setGuardando] = useState(false);
+  const [agregando, setAgregando] = useState(false);
+  const [eliminandoId, setEliminandoId] = useState(null);
+  const [error, setError] = useState("");
   const [modal, setModal] = useState({
     show: false,
     title: "",
@@ -20,72 +23,148 @@ export const AdminProvider = ({ children }) => {
     action: null,
   });
 
+  // ✅ GET - Obtener productos
+  const fetchProductos = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("https://dummyjson.com/products?limit=10");
+      const data = await res.json();
+
+      const productosConImagen = data.products.map((p) => ({
+        ...p,
+        stock: p.stock || 10,
+        image: p.thumbnail || "", // Normaliza para que siempre tenga 'image'
+      }));
+
+      setProductos(productosConImagen);
+    } catch (err) {
+      setError("Error al cargar productos.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetch("https://dummyjson.com/products?limit=20")
-      .then((res) => res.json())
-      .then((data) => {
-        const productosAdaptados = data.products.map((prod) => ({
-          ...prod,
-          image: prod.images?.[0] || "",
-          stock: prod.stock ?? 10,
-        }));
-        setProductos(productosAdaptados);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError("Error al cargar productos.");
-        setLoading(false);
-      });
+    fetchProductos();
   }, []);
 
-  const handleInputChange = (e) => {
-    setNuevoProducto({ ...nuevoProducto, [e.target.name]: e.target.value });
+  // ✅ POST - Agregar producto
+  const agregarProducto = async () => {
+    setAgregando(true);
+    try {
+      const res = await fetch("https://dummyjson.com/products/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nuevoProducto),
+      });
+      const data = await res.json();
+
+      setProductos([
+        ...productos,
+        {
+          ...data,
+          stock: nuevoProducto.stock,
+          image: nuevoProducto.image, // Asegura que tenga 'image'
+        },
+      ]);
+
+      setNuevoProducto({ title: "", price: "", image: "", stock: "" });
+
+      setModal({
+        show: true,
+        title: "Producto agregado",
+        message: `El producto "${data.title}" fue agregado correctamente.`,
+        action: () => setModal({ ...modal, show: false }),
+      });
+    } catch {
+      alert("Error al agregar producto.");
+    } finally {
+      setAgregando(false);
+    }
   };
 
-  const agregarProducto = () => {
-    const nuevo = {
-      ...nuevoProducto,
-      id: Date.now(),
-    };
-    setModal({
-      show: true,
-      title: "Agregar Producto",
-      message: `¿Estás seguro de agregar "${nuevo.title}"?`,
-      action: () => {
-        setProductos((prev) => [...prev, nuevo]);
-        setNuevoProducto({ title: "", price: 0, image: "", stock: 0 });
-        setModal((prev) => ({ ...prev, show: false }));
-      },
-    });
-  };
-
+  // ✅ DELETE - Eliminar producto con confirmación
   const eliminarProducto = (id, nombre) => {
     setModal({
       show: true,
-      title: "Eliminar Producto",
-      message: `¿Estás seguro de eliminar "${nombre}"?`,
-      action: () => {
-        setProductos((prev) => prev.filter((p) => p.id !== id));
-        setModal((prev) => ({ ...prev, show: false }));
+      title: "Eliminar producto",
+      message: `¿Estás seguro que querés eliminar "${nombre}"?`,
+      action: async () => {
+        setEliminandoId(id);
+        try {
+          await fetch(`https://dummyjson.com/products/${id}`, {
+            method: "DELETE",
+          });
+          setProductos(productos.filter((p) => p.id !== id));
+        } catch {
+          alert("Error al eliminar producto.");
+        } finally {
+          setEliminandoId(null);
+          setModal({ ...modal, show: false });
+        }
       },
     });
   };
 
-  const editarProducto = (id, campo, valor) => {
-    setProductos((prev) =>
-      prev.map((prod) => (prod.id === id ? { ...prod, [campo]: valor } : prod))
-    );
+  // ✅ PUT - Guardar cambios
+  const guardarCambios = async () => {
+    setGuardando(true);
+    try {
+      const resultados = await Promise.all(
+        productos.map(async (producto) => {
+          const res = await fetch(`https://dummyjson.com/products/${producto.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              title: producto.title,
+              price: Number(producto.price),
+              image: producto.image,
+              stock: Number(producto.stock),
+            }),
+          });
+          return res.json();
+        })
+      );
+
+      // Actualiza estado local y conserva imagen si no viene del backend
+      setProductos(
+        resultados.map((p, i) => ({
+          ...p,
+          image: p.image || productos[i].image,
+        }))
+      );
+
+      setModal({
+        show: true,
+        title: "Cambios guardados",
+        message: "Todos los productos fueron actualizados exitosamente.",
+        action: () => setModal({ ...modal, show: false }),
+      });
+    } catch {
+      setModal({
+        show: true,
+        title: "Error",
+        message: "Ocurrió un error al guardar los productos.",
+        action: () => setModal({ ...modal, show: false }),
+      });
+    } finally {
+      setGuardando(false);
+    }
   };
 
-  const guardarCambios = () => {
-    setModal({
-      show: true,
-      title: "Guardar Cambios",
-      message: "¿Deseás guardar todos los cambios realizados?",
-      action: () => {
-        console.log("Cambios guardados:", productos);
-        setModal((prev) => ({ ...prev, show: false }));
-      },
+  // 🧠 Actualiza campos en tiempo real
+  const editarProducto = (id, campo, valor) => {
+    const actualizados = productos.map((p) =>
+      p.id === id ? { ...p, [campo]: valor } : p
+    );
+    setProductos(actualizados);
+  };
+
+  // 🧠 Controla inputs del nuevo producto
+  const handleInputChange = (e) => {
+    setNuevoProducto({
+      ...nuevoProducto,
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -93,16 +172,19 @@ export const AdminProvider = ({ children }) => {
     <AdminContext.Provider
       value={{
         productos,
-        loading,
-        error,
         nuevoProducto,
+        loading,
+        guardando,
+        agregando,
+        eliminandoId,
+        error,
+        modal,
+        setModal,
         handleInputChange,
         agregarProducto,
         eliminarProducto,
         editarProducto,
         guardarCambios,
-        modal,
-        setModal,
       }}
     >
       {children}
