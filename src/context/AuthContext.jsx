@@ -1,6 +1,5 @@
 import { createContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import users from "../components/utils/users";
 
 export const AuthContext = createContext();
 
@@ -22,6 +21,10 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
+      // Cambiar para consumir la API de usuarios
+      const response = await fetch(`https://685c9590769de2bf085d24be.mockapi.io/usuarios`);
+      const users = await response.json();
+
       const foundUser = users.find(
         (user) => user.email === email && user.password === password
       );
@@ -29,8 +32,8 @@ export const AuthProvider = ({ children }) => {
       if (!foundUser) {
         setError({ email: "Credenciales inválidas" });
       } else {
+        setIsAuth(true);
         if (foundUser.role === "admin") {
-          setIsAuth(true);
           navigate("/admin");
         } else {
           navigate("/");

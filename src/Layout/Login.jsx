@@ -4,7 +4,7 @@ import { AuthContext } from "../context/AuthContext";
 
 const Login = () => {
   const { setIsAuth } = useContext(CartContext);
-  const {email,setEmail,password,setPassword,error,handleSubmit,} = useContext(AuthContext);
+  const { email, setEmail, password, setPassword, error, handleSubmit } = useContext(AuthContext);
 
   return (
     <div className="container py-5">
